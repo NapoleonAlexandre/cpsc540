@@ -1,0 +1,83 @@
+\documentclass{article}
+
+\input{/DocHeader.tex}
+\title{CPSC 540 --- Assignment 2}
+\author{Aaron Berk}
+
+\begin{document}
+\maketitle
+
+\section{Convergence Rates}
+\label{sec:convergence-rates}
+
+\subsection{Gradient Descent}
+\label{sec:gradient-descent}
+
+\begin{enumerate}
+\item Show that if  $f$ is differentiable and strongly-convex then a convergence rate of $O(\rho^t)$ in terms of the function values implies that the iterations have a convergence rate of
+\[
+\|x^t - x^*\|_2 = O(\rho^{t/2}).
+\]
+
+\soln
+
+Since $f$ is differentiable and strongly convex we have, for any $x, y$
+\begin{align*}
+  f(y) \geq f(x) + \nabla f(x)^T(y-x) + \frac{m}{2} \|y-x\|_2^2
+\end{align*}
+In particular, substituting for $x^*$ and $x^t$ it follows that
+\begin{align*}
+  f(x^t) %
+  \geq f(x^*) %
+  + \underbrace{\nabla f(x^*)^T}_{=0} (x^t - x^*) %
+  + \frac{m}{2} \|x^t - x^*\|_2^2 %
+  = f(x^*) + \frac{m}{2} \|x^t - x^*\|_2^2
+\end{align*}
+Hence, using $f(x^t) - f(x^*) = O(\rho^t)$,
+\begin{align*}
+  O(\rho^t) = f(x^t) - f(x^*) \geq \frac{m}{2} \|x^t - x^*\|_2^2  %
+  \quad \implies \quad %
+  \|x^t - x^*\|_2 \leq O(\rho^{t/2}).
+\end{align*}
+
+
+
+\end{enumerate}
+
+\subsection{Sign-Based Gradient Descent}
+\label{sec:sign-based-gradient}
+
+\subsection{Block Coordinate Descent}
+\label{sec:block-coord-desc}
+
+\section{Large-Scale Algorithms}
+\label{sec:large-scale-algor}
+
+\subsection{Coordinate Optimization}
+\label{sec:coord-optim}
+
+\subsection{Proximal-Gradient}
+\label{sec:proximal-gradient}
+
+\subsection{Stochastic Gradient}
+\label{sec:stochastic-gradient}
+
+\section{Kernels and Duality}
+\label{sec:kernels-duality}
+
+\subsection{Fenchel Duality}
+\label{sec:fenchel-duality}
+
+\subsection{Stochastic Dual Coordinate Ascent}
+\label{sec:stoch-dual-coord}
+
+\subsection{Large-Scale Kernel Methods}
+\label{sec:large-scale-kernel}
+
+
+\end{document}
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "a2_aberk"
+%%% End:
