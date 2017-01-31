@@ -1,6 +1,6 @@
 function [model] = logisticL2(X,y,lambda)
 %
-method = 'coordinate3';
+method = 'coordinate';
 
 % Add bias variable
 [n,d] = size(X);

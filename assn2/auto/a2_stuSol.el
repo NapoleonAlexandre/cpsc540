@@ -23,12 +23,20 @@
     "amssymb"
     "listings")
    (TeX-add-symbols
+    '("ip" 1)
     '("alignStar" 1)
     '("code" 1)
     '("centerfig" 2)
     '("fig" 2)
     '("argmax" 1)
     '("argmin" 1)
+    "E"
+    "irrats"
+    "rats"
+    "reals"
+    "nats"
+    "ints"
+    "complex"
     "blu"
     "gre"
     "red"
