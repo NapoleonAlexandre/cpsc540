@@ -35,6 +35,29 @@
 \newcommand{\code}[1]{\lstinputlisting[language=Matlab]{a2f/#1}}
 \newcommand{\alignStar}[1]{\begin{align*}#1\end{align*}}
 
+\lstset{
+  tabsize=2,
+  language=matlab,
+  basicstyle=\small\ttfamily, %\ttfamily,
+  % upquote=true,
+  aboveskip={\baselineskip},
+  columns=fixed,
+  showstringspaces=false,
+  extendedchars=true,
+  breaklines=true,
+  prebreak = \raisebox{0ex}[0ex][0ex]{\ensuremath{\hookleftarrow}},
+  frame=false,
+  showtabs=false,
+  showspaces=false,
+  showstringspaces=false,
+  identifierstyle=\ttfamily,
+  keywordstyle=\color[rgb]{0,0,1},
+  commentstyle=\color[rgb]{0.07,0.472,0.07},
+  stringstyle=\color[rgb]{0.627,0.126,0.941},
+  language=matlab
+}
+
+
 % Aaron's new commands
 % expectation
 \newcommand{\E}{\mathbb E}
@@ -229,9 +252,11 @@ The function \emph{example\_logistic} loads a dataset and tries to fit an L2-reg
 
 \textsc{Solution}
 
-We include the output of the default run (as base-line) as well as the three
-requested modifications, labeled ``original'', and ``coordinateX'' where $X \in
-\{1,2,3\}$, respectively. 
+We first include the code for the modified versions of \texttt{logisticL2.m},
+then the output of the default run (as base-line) as well as the three
+requested modifications, labeled ``original'', and ``coordinateX'' where
+$X \in \{1,2,3\}$, respectively. After this, we respond to question 4.
+\lstinputlisting{./code/logisticL2.m}
 \begin{verbatim}
 original: 
 Passes = 500, function = 1.4735e+02, change = 0.0003 
@@ -254,9 +279,9 @@ Elapsed time is 0.823345 seconds.
 To answer the latter question, note that where uniform sampling is used ---
 $\forall j \in [d], \,\, p(j) =
 d^{-1}$ --- we achieve the guaranteed progress bound
-\begin{align*}
-  \E (f(x^{t+1})) \leq f(x^t) - \frac{1}{2dL} \|\nabla f(x^t)\|^2
-\end{align*}
+\begin{align}
+  \E (f(x^{t+1})) \leq f(x^t) - \frac{1}{2dL} \|\nabla f(x^t)\|^2 \label{eq:214a}
+\end{align}
 where $[d] := \{1, \ldots, d\}$. Correspondingly, for Lipschitz sampling, the
 pmf is given by
 \begin{align*}
@@ -265,22 +290,33 @@ pmf is given by
 where $d\overline{L}$ is the normalizing constant for the pmf, with
 $\overline{L}$ the arithmetic mean of the coordinate-wise Lipschitz constants
 $L_j$. Hence, the guaranteed progress bound for Lipschitz sampling is
-\begin{align*}
+\begin{align}
   \E f(x^{t+1}) &\leq \E \big( f(x^t) - \frac{1}{2L} |\nabla_{j_t}
                   f(x^t)|^2\big) %
                   = \sum_{j=1}^d \frac{L_{j_t}}{d\overline{L}} \big( f(x^t) - \frac{1}{2L} |\nabla_j
                   f(x^t)|^2 \big) %
+                  \nonumber
   \\
-                &= f(x^t) - \frac{1}{2d L} \sum_{j\in d} \frac{L_{j_t}}{\overline{L}} |\nabla_{j_t} f(x^t)|^2
-\end{align*}
-In particular, uniform sampling is on average preferred to Lipschitz sampling
-if
-\begin{align*}
+                &= f(x^t) - \frac{1}{2d L} \sum_{j\in d}
+                  \frac{L_{j_t}}{\overline{L}} |\nabla_{j_t} f(x^t)|^2
+                  \label{eq:214b}
+\end{align}
+In particular, by comparing Equations~\eqref{eq:214a} and~\eqref{eq:214b},
+uniform sampling is on average preferred to Lipschitz sampling if
+\begin{align}
 \ip{\mathbf{1}, |\nabla_{j_t} f(x^t)|^2} = \|\nabla f(x^t)\|^2 > \sum_{j_t\in [d]} \frac{L_{j_t}}{\overline{L}}
-|\nabla_{j_t} f(x^t)|^2 = \ip{\frac{L_{j_t}}{\overline{L}}, |\nabla_{j_t} f(x^t)|^2}.
-\end{align*}
-More generally, it is desirable to have a sampling scheme which is [in the
-above sense] well-aligned with the squared modulus of the $j_t$-gradient vector
+|\nabla_{j_t} f(x^t)|^2 = \ip{\frac{L_{j_t}}{\overline{L}}, |\nabla_{j_t}
+  f(x^t)|^2}.
+  \label{eq:214}
+\end{align}
+Firstly, by the Cauchy-Schwarz inequality, this certainly occurs if
+$\overline{L}^{-1}\|L_{j_t}\|_2 < 1$. Moreover, as an example, perhaps
+Lipschitz sampling is sub-optimal on its second pass through the data, where
+the gradient on the highly-preferred indices is already quite small. This would
+cause the two vectors to be closer to orthogonal, thereby being more likely to
+satisfy the above inequality. Note: more generally, it is desirable to have a
+sampling scheme $p(j_t)$ which is [in the sense of Equation~\eqref{eq:214}]
+well-aligned with the squared modulus of the $j_t$-gradient vector
 $\big(|\nabla_{j_t} f(x^t)|^2 \big)$.
 
 

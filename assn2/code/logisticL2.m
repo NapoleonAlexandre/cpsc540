@@ -1,5 +1,14 @@
 function [model] = logisticL2(X,y,lambda)
 %
+
+% method \in {'original', 'coordinate1', 'coordinate2', 'coordinate3'}
+%  ... where ...
+% 'original' : no modifications to the code
+% 'coordinate1' : runtime is now O(n*d*Lc/mu*log(1/epsilon))
+% 'coordinate2' : Lipschitz sampling of the index j; 
+%                 uses the jth Lipschitz constant.
+% 'coordinate3' : uniform sampling of the index j; 
+%                 uses the jth Lipschitz constant.
 method = 'coordinate3';
 
 % Add bias variable
@@ -26,11 +35,13 @@ end
 if strcmp(method(1:end-1), 'coordinate')
     Xw = X*w;
     Xw_old = Xw;
+    doCoord = 1;
+else
+    doCoord = 0;
 end
 w_old = w;
 
 for t = 1:maxPasses*d
-    
     % Choose variable to update 'j'
     if strcmp(method, 'coordinate2')
         j = sampleDiscrete(p_Lvec);
@@ -43,14 +54,14 @@ for t = 1:maxPasses*d
     end
     
     % Compute partial derivative 'g_j'
-    if strcmp(method(1:end-1), 'coordinate')
+    if doCoord
         yXw = y.*Xw;
     else
         Xw = X*w;
         yXw = y.*Xw;
     end
     sigmoid = 1./(1+exp(-yXw));
-    if strcmp(method(1:end-1), 'coordinate')
+    if doCoord
         g_j = -X(:,j)'*(y.*(1-sigmoid)) + lambda*w(j);
     else
         g = -X'*(y.*(1-sigmoid)) + lambda*w;
@@ -58,7 +69,7 @@ for t = 1:maxPasses*d
     end
     
     % Update variable
-    if strcmp(method(1:end-1), 'coordinate')
+    if doCoord
         Xw = Xw - (1/L)*g_j*X(:,j);
     end
         w(j) = w(j) - (1/L)*g_j;
@@ -66,7 +77,7 @@ for t = 1:maxPasses*d
     % Check for lack of progress after each "pass"
     if mod(t,d) == 0
         change = norm(w-w_old,inf);
-        if strcmp(method(1:end-1), 'coordinate')
+        if doCoord
             fprintf('Passes = %d, function = %.4e, change = %.4f\n',t/d,logisticL2_loss(w,Xw,y,lambda),change);
         else
             fprintf('Passes = %d, function = %.4e, change = %.4f\n',t/d,logisticL2_loss(w,X,y,lambda),change);

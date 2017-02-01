@@ -48,6 +48,9 @@
     "argmin"
     "half")
    (LaTeX-add-labels
+    "eq:214a"
+    "eq:214b"
+    "eq:214"
     "eq:FD2")
    (LaTeX-add-color-definecolors
     "blu"
