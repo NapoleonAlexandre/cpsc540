@@ -1,11 +1,11 @@
-function [model] = softmaxClassifierL2(X,y)
+function [model] = softmaxClassifierL2(X,y,lambda)
 
 % Compute sizes
 [n,d] = size(X);
 k = max(y);
 
 W = zeros(d,k); % Each column is a classifier
-W(:) = findMin(@softmaxL2Loss,W(:),500,1,X,y,k);
+W(:) = findMin(@softmaxL2Loss,W(:),500,1,X,y,k,lambda);
 
 model.W = W;
 model.predict = @predict;
@@ -16,7 +16,7 @@ W = model.W;
 [~,yhat] = max(X*W,[],2);
 end
 
-function [nll,g,H] = softmaxL2Loss(w,X,y,k)
+function [nll,g,H] = softmaxL2Loss(w,X,y,k,lambda)
 
 [n,p] = size(X);
 W = reshape(w,[p k]);
@@ -25,8 +25,9 @@ XW = X*W;
 Z = sum(exp(XW),2);
 
 ind = sub2ind([n k],[1:n]',y);
-nll = -sum(XW(ind)-log(Z));
+nll = -sum(XW(ind)-log(Z)) + .5*lambda*W(:)'W(:);
 
+% now fix the gradient.
 g = zeros(p,k);
 for c = 1:k
     g(:,c) = X'*(exp(XW(:,c))./Z-(y == c));

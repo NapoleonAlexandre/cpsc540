@@ -332,6 +332,8 @@ If you run the demo \emph{example\_group}, it will load a dataset and fit a mult
 \item L1-regularization achieves sparsity in the \emph{model parameters}, but in this dataset it's actually the \emph{original features} that are irrelevant. We can encourage sparsity in the original features by using \emph{group} L1-regularization. Write a new function, \emph{proxGradGroupL1}, to allow (disjoint) \emph{group} L1-regularization. Use this within a new function, \emph{softmaxClassiferGL1}, to fit a group L1-regularized multi-class logistic regression model (where \emph{rows} of $W$ are grouped together and we use the L2-norm of the groups).  \blu{Hand in both modified  functions (\emph{softmaxClassifierGL1} and \emph{proxGradGroupL1}) and report the validation error achieved with $\lambda=10$. Also report the number of non-zero parameters in the model and the number of original features that the model uses}.
 }
 
+\textsc{Solution}
+
 
 
 \subsection{Stochastic Gradient}
