@@ -22,7 +22,7 @@ ytemp = zeros(nTest, model.K);
 
 for i=1:nTest
     for j=1:model.K
-        ytemp(i,j) = model.tdist{j}.pdf(model.tdist{j},Xtest(i,:)');
+        ytemp(i,j) = model.tdist{j}.pdf(model.tdist{j},Xtest(i,:));
     end
 end
 
