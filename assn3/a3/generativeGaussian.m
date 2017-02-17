@@ -1,0 +1,48 @@
+function model = generativeGaussian(Xtrain,Ytrain,k)
+
+[n,d] = size(Xtrain);
+
+model.Xtrain = Xtrain;
+model.Ytrain = Ytrain;
+model.K = k;
+
+mu = cell(k,1);
+theta = zeros(k,1);
+SIGMA = cell(k,1);
+
+for i=1:k
+    SIGMA{i} = zeros(d);
+    
+    ind = find(Ytrain == i);
+    theta(i) = sum(Ytrain == i)/n;
+    mu{i} = (1/(n*theta(i)))*sum(Xtrain(ind,:))';
+
+    for j=1:size(ind,1)
+        SIGMA{i} = SIGMA{i} + (1/(n*theta(i)))*((Xtrain(ind(j),:)'-mu{i})*(Xtrain(ind(j),:)'-mu{i})');
+    end
+    
+    
+end
+model.predict = @(model, Xtest) predict(model, Xtest);
+model.mu = mu;
+model.theta = theta;
+model.SIGMA = SIGMA;
+
+end
+
+function yhat = predict(model, Xtest)
+
+[nTest,d] = size(Xtest);
+
+prob = @(x,mu,SIGMA) (1/(((2*pi)^(d/2))*sqrt(det(SIGMA))))*exp(-0.5*(x-mu)'*(SIGMA\(x-mu)));
+ytemp = zeros(nTest, model.K);
+
+for i=1:nTest
+    for j=1:model.K
+        ytemp(i,j) = prob(Xtest(i,:)',model.mu{j},model.SIGMA{j});
+    end
+end
+
+[~,yhat] = max(ytemp,[],2);
+
+end
