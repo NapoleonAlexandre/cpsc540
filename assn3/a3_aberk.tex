@@ -216,7 +216,7 @@ Hints: you will be able to substantially simplify the notation in parts 1-3 if y
 \textbf{Student's Solution:}
 \begin{enumerate}
   %%%%%%%%%%%%%%%%%%%%%%%%%
-  %% 1.1.1
+  %% 1.2.1
   %%%%%%%%%%%%%%%%%%%%%%%%%
 \item Derive the MLE for the GDA model under the assumption of common diagonal covariance matrices $\Sigma_c = D$ ($d$ parameters). (Each class will have its own mean $\mu_c$.)
   
@@ -238,7 +238,9 @@ Hints: you will be able to substantially simplify the notation in parts 1-3 if y
  \frac{n}{2} diag(S) - \frac{n}{2} = 0 \implies \\
  D = diag(S)
  \]
-
+  %%%%%%%%%%%%%%%%%%%%%%%%%
+  %% 1.2.2
+  %%%%%%%%%%%%%%%%%%%%%%%%%
 \item Derive the MLE for the GDA model under the assumption of \emph{individual scale-identity matrices}, $\Sigma_c = \sigma_c^2 I$ ($k$ parameters)
  
  We will first notice that changing assumption on $\Sigma_c$ does not change the MLE for $\mu_c$.
@@ -252,19 +254,25 @@ Hints: you will be able to substantially simplify the notation in parts 1-3 if y
  - \nabla_{\sigma_c^2} \log p(X|y,\Theta) = 0 \implies \\
  \sigma_c^2 = \frac{1}{n_c} \sum_{i=1}^n \mathcal{I}[y^i=c] (x^i - \mu_{y^i})^T(x^i - \mu_{y^i})
  \]
-
+  %%%%%%%%%%%%%%%%%%%%%%%%%
+  %% 1.2.3
+  %%%%%%%%%%%%%%%%%%%%%%%%%
  \item Without derivation, give the MLE for the case of \emph{individual full} covariance matrices
  Your intuition in that case is:
  \[
  \Sigma_c = \frac{1}{n_c} \sum_{i=1}^n \mathcal{I}[y^i=c] (x^i - \mu_{y^i})(x^i - \mu_{y^i})^T
  \]
-
+  %%%%%%%%%%%%%%%%%%%%%%%%%
+  %% 1.2.4
+  %%%%%%%%%%%%%%%%%%%%%%%%%
  \item  Write a function \emph{generativeGaussian} that fits a GDA model to this dataset (using individual full covariance matrices). \blu{Hand in the function and report the test set accuracy}.
 
  \lstinputlisting{./a3/generativeGaussian.m}
 
  Our test set accuracy is now 0.63.
-
+  %%%%%%%%%%%%%%%%%%%%%%%%%
+  %% 1.2.5
+  %%%%%%%%%%%%%%%%%%%%%%%%%
  \item Write a new function \emph{generativeStudent} that implements a generative model that is based on the multivariate-t distribution instead of the Gaussian distribution. \blu{Report the test accuracy  with this model.} 
  \lstinputlisting{./a3/generativeStudent.m}
 
@@ -278,8 +286,6 @@ Hints: you will be able to substantially simplify the notation in parts 1-3 if y
 \end{tabular}
 
 \end{enumerate}
-
-
 
 \subsection{Self-Conjugacy for the Mean Parameter}
 
@@ -300,6 +306,24 @@ Hints: Use Bayes rule and use the $\propto$ sign to get rid of factors that don'
 \end{align*}
 Note that multiplying by factors that do not depend on $\mu$ within the exponent does not change the distribution. In this question you will want to complete the square to get the distribution on $\mu$, rather than $x$.
 You may find it easier to solve thie problem if you parameterize the Gaussians in terms of their `precision' parameters (e.g., $\lambda = 1/\sigma^2$, $\lambda_0 = 1/\gamma^2$) rather than their variances $\sigma^2$ and $\gamma^2$.
+
+\textbf{Student's Solution:}
+
+Re-using Tutorial 6 material, we get:
+\begin{align}
+p(\mu | x,\alpha, \sigma^2, \gamma^2) &= p(x| \mu, \alpha, \sigma^2, \gamma^2)p(\mu| \alpha,  \gamma^2) / Z \qquad\text{(Bayes rule)}\\
+&= p(x| \mu, \sigma^2)p(\mu| \alpha,  \gamma^2) / Z \qquad\text{(Conditional independence)}\\
+&\propto p(x| \mu, \sigma^2)p(\mu| \alpha,  \gamma^2) \qquad\text{(Dropping the }Z)\\
+&\propto \exp\left(-\frac{(x - \mu)^2}{2\sigma^2}\right)\exp\left(-\frac{(\mu - \alpha)^2}{2\gamma^2}\right) \qquad\text{(Subbing in the expression for the pdf and dropping constants)}\\
+&= \exp\left(-\frac{(x - \mu)^2}{2\sigma^2}-\frac{(\mu - \alpha)^2}{2\gamma^2}\right) \\
+&= \exp\left(-\left( \frac{\sigma^2+\gamma^2}{2(\sigma\gamma)^2} \mu^2 - 2\frac{\gamma^2x+\sigma^2\alpha}{(\sigma\gamma)^2}\mu\right)\right) \qquad\text{(developing the expression and dropping constants)}\\
+&= \exp\left(- \frac{\sigma^2+\gamma^2}{2(\sigma\gamma)^2} \left(\mu-\frac{\gamma^2x+\sigma^2\alpha}{\sigma^2+\gamma^2}\right)^2\right) \qquad\text{(Factorization and final result)}
+\end{align}
+
+So the posterior follows a Gaussian distribution 
+\[
+p(\mu|x,\alpha,\sigma^2,\gamma^2) \sim \mathcal{N}(\frac{\gamma^2x+\sigma^2\alpha}{\sigma^2+\gamma^2},\frac{(\sigma\gamma)^2}{\sigma^2+\gamma^2}),
+\]
 
 
 
