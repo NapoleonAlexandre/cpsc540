@@ -1,0 +1,5 @@
+*.aux\n*.log\n*.synctex.gz
+.aux
+*.log
+*.aux
+*.synctex.gz

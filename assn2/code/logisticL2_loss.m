@@ -1,5 +1,9 @@
 function [nll,g,H] = logisticL2_loss(w,X,y,lambda)
-yXw = y.*(X*w);
+if iscolumn(X)
+    yXw = y.*X; % because X is actually Xw
+else
+    yXw = y.*(X*w);
+end
 
 % Function value
 nll = sum(log(1+exp(-yXw))) + (lambda/2)*(w'*w);
