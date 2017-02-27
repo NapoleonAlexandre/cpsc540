@@ -15,6 +15,6 @@ model = generativeGaussian(Xtrain, Ytrain,nClasses);
 Yhat = model.predict(model, Xtest);
 fprintf('Gaussian Gen. Model. accuracy is %.2f\n', mean(Yhat==Ytest));
 
-model = generativeStudent(Xtrain, Ytrain,nClasses);
-Yhat = model.predict(model, Xtest);
-fprintf('Tdist Gen. Model. accuracy is %.2f\n', mean(Yhat==Ytest));
+%model = generativeStudent(Xtrain, Ytrain,nClasses);
+%Yhat = model.predict(model, Xtest);
+%fprintf('Tdist Gen. Model. accuracy is %.2f\n', mean(Yhat==Ytest));

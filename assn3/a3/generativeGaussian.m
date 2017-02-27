@@ -18,7 +18,6 @@ SIGMA = cell(k,1);
 
 %For each class i
 for i=1:k
-    SIGMA{i} = zeros(d);
     
     ind = find(Ytrain == i);
     %Compute probability of the class theta_i
@@ -27,9 +26,7 @@ for i=1:k
     mu{i} = (1/(n*theta(i)))*sum(Xtrain(ind,:))';
     
     %Compute cavariance matrix SIGMA_i
-    for j=1:size(ind,1)
-        SIGMA{i} = SIGMA{i} + (1/(n*theta(i)))*((Xtrain(ind(j),:)'-mu{i})*(Xtrain(ind(j),:)'-mu{i})');
-    end
+    SIGMA{i} = (1/(n*theta(i)))*((Xtrain(ind,:)'-mu{i})*(Xtrain(ind,:)'-mu{i})');
     
     
 end
@@ -46,14 +43,13 @@ function yhat = predict(model, Xtest)
 [nTest,d] = size(Xtest);
 
 %Probability distribution
-prob = @(x,mu,SIGMA) (1/(((2*pi)^(d/2))*sqrt(det(SIGMA))))*exp(-0.5*(x-mu)'*(SIGMA\(x-mu)));
 ytemp = zeros(nTest, model.K);
 
 %for each test data
 for i=1:nTest
     %compute the probability to be in each class
     for j=1:model.K
-        ytemp(i,j) = prob(Xtest(i,:)',model.mu{j},model.SIGMA{j});
+        ytemp(i,j) = mvnpdf(Xtest(i,:)',model.mu{j},model.SIGMA{j});
     end
 end
 %Classify in the class with maximum probability

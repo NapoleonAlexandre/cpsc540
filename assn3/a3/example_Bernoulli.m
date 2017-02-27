@@ -1,8 +1,9 @@
 clear all;
 load mnist
 %Xtrain = Xtrain(1:1000,:);
-
-model = densityBernoulli(Xtrain);
+alpha = 2;
+beta = alpha;
+model = densityBernoulli(Xtrain,alpha,beta);
 
 nlls = model.predict(model,Xtest);
 averageNLL = sum(nlls)/size(Xtest,1)

@@ -1,9 +1,8 @@
-function [ model ] = densityBernoulli(X)
+function [ model ] = densityBernoulli(X,alpha,beta)
 
 [n,d] = size(X);
-
-theta = mean(X);
-
+%theta = mean(X);
+theta = (sum(X,1)+alpha-1)/(n+alpha+beta-2);
 model.theta = theta;
 model.predict = @predict;
 model.sample = @sample;
