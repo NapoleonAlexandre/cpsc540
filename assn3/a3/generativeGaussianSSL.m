@@ -14,18 +14,19 @@ r = zeros(t,k);
 for j=1:its
     
     % E step
-    %For each class i
+    %For each class i update r
     for i=1:k
         r(:,i) = mvnpdf(Xunlabeled,model.mu{i}',model.SIGMA{i})*model.theta(i);
     end
+    %Normalization method for sum = 1, dependent of hard of soft-EM
     if hard
         r = double(bsxfun(@eq, r, max(r, [], 2)));
     else
         r = r./sum(r,2);
     end
     
-    
     %M step
+    %For each class i
     for i=1:k
         ind = find(Ytrain == i);
         

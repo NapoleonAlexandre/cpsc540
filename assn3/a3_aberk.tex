@@ -64,9 +64,10 @@
 
 
 \title{CPSC 540 Assignment 3 (due February 27)}
-\author{Density Estimation and Project Proposal}
-\date{}
+\author{Thibaut Astic}
+\date{Student ID: 90142150; For Audit}
 \maketitle
+
 
 
 \section{Discrete and Gaussian Variables}
@@ -330,6 +331,8 @@ Hints: Use Bayes rule and use the $\propto$ sign to get rid of factors that don'
 Note that multiplying by factors that do not depend on $\mu$ within the exponent does not change the distribution. In this question you will want to complete the square to get the distribution on $\mu$, rather than $x$.
 You may find it easier to solve thie problem if you parameterize the Gaussians in terms of their `precision' parameters (e.g., $\lambda = 1/\sigma^2$, $\lambda_0 = 1/\gamma^2$) rather than their variances $\sigma^2$ and $\gamma^2$.
 
+\newpage
+
 \textbf{Student's Solution:}
 
 Re-using Tutorial 6 material, we get:
@@ -367,7 +370,66 @@ Hint: for the first question most of the work has been done for you in the EM no
 
 Hint: for the second question, although EM often leads to simple updates, implementing them correctly can often be a pain. One way to help debug your code is to compute the observed-data log-likelihood after every iteration. If this number goes down, then you know your implementation has a problem. You can also test your updates of sets of variables in this way too. For example, if you hold the $\mu_c$ and $\Sigma_c$ fixed and only update the $\theta_c$, then the log-liklihood should not go down. In this way, you can test each of combinationso of updates on their to make sure they are correct.
 
+\textbf{Student's Solution:}
+\begin{enumerate}
+  %%%%%%%%%%%%%%%%%%%%%%%%%
+  %% 2.1.1
+  %%%%%%%%%%%%%%%%%%%%%%%%%
+  \item Starting from equation (**) from the note:
+  \[
+  Q(\theta|\theta_k) =  \sum_{i=1}^n \log p(y_i ,x_i |\theta)+ \sum_{i=1}^t\sum_{\tilde{y}_i\in\{0,1\}} r_{\tilde{y}_i}^i\log p(\tilde{y}_i ,\tilde{x}_i |\theta).
+  \]
+  we now want to update for $\mu_c,\Sigma_c$ and $\theta_c$, with $c$ the class index.
+  The update for $\mu_i$ has been developed in the tutorial and we are reproducing it here.
+  \begin{align}
+  \nabla_{\mu_c} Q(\theta|\theta_k) &=  \sum_{i=1}^n \mathbb{I}(y_i = c)\Sigma_c^{-1}(x_i - \mu_c) + \sum_{i=1}^t\sum_{\tilde{y}_i\in\{0,c\}} r_{\tilde{y}_i}^i \mathbb{I}(y_i = c)\Sigma_c^{-1}(x_i - \mu_c).\\
+  &=  \sum_{i=1}^n \mathbb{I}(y_i = c)\Sigma_c^{-1}(x_i - \mu_c) + \sum_{i=1}^t r_{c}^i\Sigma_c^{-1}(x_i - \mu_c).\\
+  \end{align}
+  Setting it to 0, we get
+  \begin{align}
+ \sum_{i=1}^n \mathbb{I}(y_i = c)\Sigma_c^{-1}(x_i - \mu_c) &+ \sum_{i=1}^t r_{c}^i\Sigma_c^{-1}(x_i - \mu_c) = 0\\
+  \sum_{i=1}^n \mathbb{I}(y_i = c)x_i + \sum_{i=1}^t r_{c}^i x_i & =  \mu_c \sum_{i=1}^n \mathbb{I}(y_i = c)  +   \sum_{i=1}^t r_{c}^i\mu_c \\
+  \mu_c &= \frac{1}{n_c + r_{c}} ( \sum_{i=1}^n \mathbb{I}(y_i = c)x_i + \sum_{i=1}^t r_{c}^i x_i ) \\
+  \end{align}
+  With $r_{c} = \sum_{i=1}^t r_{c}^i$.
 
+  We derive $Sigma_c$ the same way, under full matrices assumptions:
+  \begin{align}
+  \nabla_{\Sigma_c} Q(\theta|\theta_k) &=  \frac{1}{2}\sum_{i=1}^n \mathbb{I}(y_i = c)(x_i - \mu_c)(x_i - \mu_c)^T -\frac{1}{2}\sum_{i=1}^n \mathbb{I}(y_i = c)\Sigma_c \\
+  & + \frac{1}{2}\sum_{i=1}^t\sum_{\tilde{y}_i\in\{0,c\}} r_{\tilde{y}_i}^i \mathbb{I}(y_i = c)(x_i - \mu_c)(x_i - \mu_c)^T-\frac{1}{2}\sum_{i=1}^t\sum_{\tilde{y}_i\in\{0,c\}} r_{\tilde{y}_i}^i \mathbb{I}(y_i = c)\Sigma_c.\\
+  \Sigma_c &=  \frac{1}{N_c+r_c}\left(\sum_{i=1}^n \mathbb{I}(y_i = c)(x_i - \mu_c)(x_i - \mu_c)^T + \sum_{i=1}^t r_{c}^i (x_i - \mu_c)(x_i - \mu_c)^T \right).\\
+  \end{align}
+
+  and Finally for $\theta_c$ the result was already derived in the EM notes:
+  \[
+ \theta_c = \frac{N_c+r_c}{n+t}
+  \]
+
+  %%%%%%%%%%%%%%%%%%%%%%%%%
+  %% 2.1.1
+  %%%%%%%%%%%%%%%%%%%%%%%%%
+ \item
+ Our function generativeGaussianSSL that perform E and M steps of EM to fit a mixture of gaussian. The predic 
+  \lstinputlisting{./a3/generativeGaussianSSL.m}
+  
+  \begin{tabular}[h]{cccc}
+  \textbf{Method} & \textbf{Accuracy}\\
+  KNN & 0.28\\
+  GDA & 0.54\\
+  SSL Gaussian Soft-EM & 0.75 \\
+  SSL Gaussian Hard-EM & 0.76 
+\end{tabular}
+ 
+ The improvement with EM is significant. We almost have the same accuracy than in the case of fully labeled data.
+  %%%%%%%%%%%%%%%%%%%%%%%%%
+  %% 2.1.1
+  %%%%%%%%%%%%%%%%%%%%%%%%%
+ \item
+  The accuracy is slightly better with Hard-EM but not much. Our hypothesis is that soft-EM can blur the results if the classes are not very distinctive. the number of iteration to reach a plateau in accuracy is slgihtly the same here. 
+  
+  \centerfig{.7}{SoftHard_Iterations_EM.jpg}
+
+\end{enumerate}
 
 \subsection{Mixture of Bernoullis}
 
@@ -377,7 +439,28 @@ The function \emph{example\_Bernoulli} loads a binarized version of the MNIST da
 \item Write a new function implementing the mixture of Bernoullis model with Laplace smoothing of the $\theta$ values (note that Laplace smoothing only change the M-step). \blu{Hand in the code and report the average NLL with $\alpha = 1$ and $k=10$ for a particular run of the algorithm, as well as 4 samples from the model and 4 of the cluster images.}
 }
 
+\textbf{Student's Solution:}
+\begin{enumerate}
+  %%%%%%%%%%%%%%%%%%%%%%%%%
+  %% 2.2.1
+  %%%%%%%%%%%%%%%%%%%%%%%%%
+  \item Our code with Laplace Smoothing (we used the generalization showned in class with both $\alpha$ and $\beta$). NLL is about 205 now. The samples have not really change.
 
+  \lstinputlisting{./a3/densityBernoulli.m}
+
+  %%%%%%%%%%%%%%%%%%%%%%%%%
+  %% 2.2.1
+  %%%%%%%%%%%%%%%%%%%%%%%%%
+  \item We admit we did not quite succeed to implement these methods. The difficulty came mainly from underflowing in the formulation of r. Strangly, so far, our code do not distinguish between cluster and put everything in one, reproducing the result from densityBernoulli. This was encouraging but not quite there yet.
+
+    \lstinputlisting{./a3/mixtureBernoulli.m}
+
+
+\end{enumerate}
+
+\subsection{Project Proposal}
+
+As an auditor, I do not want to submit one.
 
 \end{document}
 %%% Local Variables:
