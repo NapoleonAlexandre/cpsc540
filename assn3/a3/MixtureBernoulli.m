@@ -39,14 +39,6 @@ model.L = L;
 
 end
 
-
-function nlls = predict(model, Xhat)
-[t,d] = size(Xhat);
-theta = model.theta;
-
-nlls = -sum(prod0(Xhat,repmat(log(theta),[t 1])) + prod0(1-Xhat,repmat(log(1-theta),[t 1])),2);
-end
-
 function samples = sample(model,t)
 
 [k,d] = size(model.mu);
