@@ -1,4 +1,4 @@
-function [ model ] = MixtureBernoulli(X,alpha,k,its)
+function [ model ] = MixtureBernoulli(X,alpha,beta,k,its)
 
 [n,d] = size(X);
 theta = mean(X);
@@ -6,7 +6,7 @@ model.predict = @predict;
 model.sample = @sample;
 
 pic = ones(k,1)/k;
-mu = rand(k,d);
+mu = 0.25+0.5*rand(k,d);
 
 for j=1:its
     
@@ -18,22 +18,25 @@ for j=1:its
     end
     
     Lmax = max(max(L));
+    %LogSumExp trick
     r = L-Lmax-log(sum(exp(L-Lmax),2));
     r = exp(r);
     
     %M step
-    pic = (sum(r)+alpha-1)/(n+k*(alpha-1));
+    z = sum(r);
     for i=1:k
-        mu(i,:) = (sum(spdiags(r(:,i),0,n,n)*X))/(n*pic(i));
+        mu(i,:) = (sum(spdiags(r(:,i),0,n,n)*X)+beta-1)/(z(i)+k*(beta-1));
     end
-    
-    model.predict = @predict;
-    model.sample = @sample;
-    model.mu = mu;
-    model.pic = pic;
-    model.r = r;
+    pic = (z+alpha-1)/(n+k*(alpha-1));
 
 end
+model.predict = @predict;
+model.sample = @sample;
+model.mu = mu;
+model.pic = pic;
+model.r = r;
+model.L = L;
+
 end
 
 
@@ -46,10 +49,11 @@ end
 
 function samples = sample(model,t)
 
-d = length(theta);
+[k,d] = size(model.mu);
 
 samples = zeros(t,d);
 for i = 1:t
-    samples(i,:) = rand(1,d) < theta;
-end
+    k =sampleDiscrete(model.pic);
+    samples(i,:) = rand(1,d) < model.mu(k,:);
+    end
 end

@@ -1,7 +1,7 @@
 clear all;
 load mnist
 %Xtrain = Xtrain(1:1000,:);
-alpha = 2;
+alpha = 1;
 beta = alpha;
 model = densityBernoulli(Xtrain,alpha,beta);
 
