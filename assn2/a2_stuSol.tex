@@ -35,6 +35,42 @@
 \newcommand{\code}[1]{\lstinputlisting[language=Matlab]{a2f/#1}}
 \newcommand{\alignStar}[1]{\begin{align*}#1\end{align*}}
 
+\lstset{
+  tabsize=2,
+  language=matlab,
+  basicstyle=\small\ttfamily, %\ttfamily,
+  % upquote=true,
+  aboveskip={\baselineskip},
+  columns=fixed,
+  showstringspaces=false,
+  extendedchars=true,
+  breaklines=true,
+  prebreak = \raisebox{0ex}[0ex][0ex]{\ensuremath{\hookleftarrow}},
+  frame=false,
+  showtabs=false,
+  showspaces=false,
+  showstringspaces=false,
+  identifierstyle=\ttfamily,
+  keywordstyle=\color[rgb]{0,0,1},
+  commentstyle=\color[rgb]{0.07,0.472,0.07},
+  stringstyle=\color[rgb]{0.627,0.126,0.941},
+  language=matlab
+}
+
+
+% Aaron's new commands
+% expectation
+\newcommand{\E}{\mathbb E}
+% % inner product
+\newcommand{\ip}[1]{\ensuremath{\langle #1\rangle}}
+% % typical bb letters
+\newcommand{\irrats}{\ensuremath{\mathbb{R}\setminus\mathbb{Q}}}
+\newcommand{\rats}{\ensuremath{\mathbb{Q}}}
+\newcommand{\reals}{\ensuremath{\mathbb{R}}}
+\newcommand{\nats}{\ensuremath{\mathbb{N}}}
+\newcommand{\ints}{\ensuremath{\mathbb{Z}}}
+\newcommand{\complex}{\ensuremath{\mathbb{C}}}
+
 
 \title{CPSC 540 Assignment 2 (due February 6)}
 \author{Large-Scale Machine Learning}
@@ -214,6 +250,76 @@ The function \emph{example\_logistic} loads a dataset and tries to fit an L2-reg
 \item Suppose that when we use a step-size of $1/L_{j_t}$, we see that uniform sampling outperforms Lipschitz sampling. \blu{Why would this be consistent with the bounds we stated in class?}
 }
 
+\textsc{Solution}
+
+We first include the code for the modified versions of \texttt{logisticL2.m},
+then the output of the default run (as base-line) as well as the three
+requested modifications, labeled ``original'', and ``coordinateX'' where
+$X \in \{1,2,3\}$, respectively. After this, we respond to question 4.
+\lstinputlisting{./code/logisticL2.m}
+\begin{verbatim}
+original: 
+Passes = 500, function = 1.4735e+02, change = 0.0003 
+Elapsed time is 17.793978 seconds.
+
+coordinate1: 
+Passes = 500, function = 1.4723e+02, change = 0.0005 
+Elapsed time is 3.021629 seconds.
+
+coordinate2: 
+Passes = 291, function = 1.4330e+02, change = 0.0001 
+Parameters changed by less than progTol on pass 
+Elapsed time is 2.132973 seconds.
+
+coordinate3: 
+Passes = 136, function = 1.4091e+02, change = 0.0001 
+Parameters changed by less than progTol on pass 
+Elapsed time is 0.823345 seconds.
+\end{verbatim}
+To answer the latter question, note that where uniform sampling is used ---
+$\forall j \in [d], \,\, p(j) =
+d^{-1}$ --- we achieve the guaranteed progress bound
+\begin{align}
+  \E (f(x^{t+1})) \leq f(x^t) - \frac{1}{2dL} \|\nabla f(x^t)\|^2 \label{eq:214a}
+\end{align}
+where $[d] := \{1, \ldots, d\}$. Correspondingly, for Lipschitz sampling, the
+pmf is given by
+\begin{align*}
+\forall j \in [d],\quad p(j) = \frac{L_j}{\sum_{j \in [d]} L_j} =: \frac{L_j}{d \overline{L}}
+\end{align*}
+where $d\overline{L}$ is the normalizing constant for the pmf, with
+$\overline{L}$ the arithmetic mean of the coordinate-wise Lipschitz constants
+$L_j$. Hence, the guaranteed progress bound for Lipschitz sampling is
+\begin{align}
+  \E f(x^{t+1}) &\leq \E \big( f(x^t) - \frac{1}{2L} |\nabla_{j_t}
+                  f(x^t)|^2\big) %
+                  = \sum_{j=1}^d \frac{L_{j_t}}{d\overline{L}} \big( f(x^t) - \frac{1}{2L} |\nabla_j
+                  f(x^t)|^2 \big) %
+                  \nonumber
+  \\
+                &= f(x^t) - \frac{1}{2d L} \sum_{j\in d}
+                  \frac{L_{j_t}}{\overline{L}} |\nabla_{j_t} f(x^t)|^2
+                  \label{eq:214b}
+\end{align}
+In particular, by comparing Equations~\eqref{eq:214a} and~\eqref{eq:214b},
+uniform sampling is on average preferred to Lipschitz sampling if
+\begin{align}
+\ip{\mathbf{1}, |\nabla_{j_t} f(x^t)|^2} = \|\nabla f(x^t)\|^2 > \sum_{j_t\in [d]} \frac{L_{j_t}}{\overline{L}}
+|\nabla_{j_t} f(x^t)|^2 = \ip{\frac{L_{j_t}}{\overline{L}}, |\nabla_{j_t}
+  f(x^t)|^2}.
+  \label{eq:214}
+\end{align}
+Firstly, by the Cauchy-Schwarz inequality, this certainly occurs if
+$\overline{L}^{-1}\|L_{j_t}\|_2 < 1$. Moreover, as an example, perhaps
+Lipschitz sampling is sub-optimal on its second pass through the data, where
+the gradient on the highly-preferred indices is already quite small. This would
+cause the two vectors to be closer to orthogonal, thereby being more likely to
+satisfy the above inequality. Note: more generally, it is desirable to have a
+sampling scheme $p(j_t)$ which is [in the sense of Equation~\eqref{eq:214}]
+well-aligned with the squared modulus of the $j_t$-gradient vector
+$\big(|\nabla_{j_t} f(x^t)|^2 \big)$.
+
+
 
 \subsection{Proximal-Gradient}
 
@@ -225,6 +331,8 @@ If you run the demo \emph{example\_group}, it will load a dataset and fit a mult
 \item While L2-regularization reduces overfitting a bit, it still uses all the variables even though 90\% of them are irrelevant. In situations like this, L1-regularization may be more suitable. Write a new function, \emph{softmaxClassifierL1}, that fits a multi-class logistic regression model with L1-regularization. You can use the function \emph{proxGradL1}, which minimizes the sum of a differentiable function and an L1-regularization term.  \blu{Report the number of non-zero parameters in the model and the number of original features that the model uses}.
 \item L1-regularization achieves sparsity in the \emph{model parameters}, but in this dataset it's actually the \emph{original features} that are irrelevant. We can encourage sparsity in the original features by using \emph{group} L1-regularization. Write a new function, \emph{proxGradGroupL1}, to allow (disjoint) \emph{group} L1-regularization. Use this within a new function, \emph{softmaxClassiferGL1}, to fit a group L1-regularized multi-class logistic regression model (where \emph{rows} of $W$ are grouped together and we use the L2-norm of the groups).  \blu{Hand in both modified  functions (\emph{softmaxClassifierGL1} and \emph{proxGradGroupL1}) and report the validation error achieved with $\lambda=10$. Also report the number of non-zero parameters in the model and the number of original features that the model uses}.
 }
+
+\textsc{Solution}
 
 
 
@@ -283,7 +391,97 @@ For a differentiable $f$, you can often solve for the value achieving the $\sup$
 
 \textsc{Solution}
 
+\begin{enumerate}
+\item Define $f(\omega) := \frac{1}{2} \|\omega -y \|_2^2$ and $g(\omega) :=
+  \frac{\lambda}{2}\|\omega\|_2^2$. Since $f$ and $\ip{\cdot,\cdot}$ are
+  smooth, the optimal value for $\omega$ can be computed coordinate-wise as the
+  solution of 
+  \begin{align*}
+    \partial_{\omega_j} \big(\ip{\omega, z} - f(\omega)\big) = z_j + y_j -
+    \omega_j = 0. 
+  \end{align*}
+  Hence, since the argument of $\partial_{\omega_j}$ is concave, the argument
+  is maximal for $\omega = \omega^* := z_j + y_j$ whence
+  \begin{align*}
+    f^*(z) = \ip{y+z,z} - \frac{1}{2} \|z\|_2^2 = \ip{y,z} + \frac{1}{2} \|z\|_2^2
+  \end{align*}
+  Similarly,
+  $\partial_{\omega_j} \big( \ip{\omega,z} - \frac{\lambda}{2} \|\omega\|_2^2
+  \big) = z_j - \lambda \omega_j = 0$, implying that
+  $\omega = \omega^* := z/\lambda$. Therefore,
+  \begin{align*}
+    g^*(z) = \frac{1}{2\lambda} \|z\|_2^2
+  \end{align*}
+  Therefore,
+  \begin{align*}
+    D(z) = -f^* (-z) - g^*(X^Tz) = \ip{y,z} - \frac{1}{2} \|z\|_2^2 -
+    \frac{1}{2\lambda} \|X^T z\|_2^2.
+  \end{align*}
+\item Define $f(\omega) := \|\omega - y\|_1,\,\, g(\omega) :=
+  \lambda\|\omega\|_1$. As per example 3.26 and $\S 3.3.2$ of Boyd \& Vandenberghe,
+  \begin{align*}
+    f^*(z) &= (\|\cdot\|_1)^*(z) - \ip{z,y} =
+    \begin{cases}
+      -\ip{z,y} & \|z\|_\infty \leq 1\\
+      \infty & \text{otherwise}
+    \end{cases}
+                &
+                  g^*(z) &=
+                           \begin{cases}
+                             0 & \|z\|_\infty \leq \lambda\\
+                             \infty & \text{otherwise}
+                           \end{cases}
+  \end{align*}
+  Therefore,
+  \begin{align*}
+    D(z) = - f^*(-z) - g^*(X^T z) =
+    \begin{cases}
+      \ip{z,y} & \|z\|_\infty \leq 1\text{ and } \|X^T
+      z\|_\infty \leq 1\\
+      \infty & \text{otherwise}
+    \end{cases}
+  \end{align*}
 
+\item As suggested, define $f(v) := \sum_{i=1}^n \log ( 1 + \exp(v_i))$ and
+  $g(w) := \frac{\lambda}{2} \|w\|_2^2$. We already know the form for
+  $g^*(z)$; it remains to compute $f^*(z)$.
+  \begin{align*}
+    f^*(z) = \sup_{v \in \reals^n} \ip{z,v} - \sum_{i=1}^n \log(1 + \exp(v_i))
+  \end{align*}
+  Using this form as motivation, we note that $f^*(z) = \sum_{i=1}^n f^*(z_i)$
+  where
+  \begin{align*}
+    f^*(z_i) = \sup_{v_i \in \reals^d} z_i v_i - \log(1 + \exp(v_i))
+  \end{align*}
+  Now
+  \begin{align*}
+    \nabla_{v_i} \big( z_i v_i - \log(1 + \exp(v_i))\big) = z_i -
+    \frac{\exp(v_i)}{1 + \exp(v_i)} = z_i - 1 + \frac{1}{1 + \exp(v_i)} = 0 
+  \end{align*}
+  Therefore,
+  \begin{align*}
+    v_i = \log(\frac{z_i}{1-z_i})
+  \end{align*}
+  whence
+  \begin{align*}
+    f^*(z_i) = z_i \log(\frac{z_i}{1-z_i}) + \log(1-z_i) %
+    = \log ( {z_i}^{z_i} ) - \log( (1-z_i)^{z_i}) + \log (1- z_i)
+  \end{align*}
+  Putting it all together,
+  \begin{align*}
+    f^*(z) = \sum_{i=1}^n f^*(z_i) = \sum_{i=1}^n \big[ \log ( {z_i}^{z_i} ) +
+    \log( (1-z_i)^{1-z_i}) \big]
+  \end{align*}
+  Thus, where $A := \mathrm{diag}\,(y^i) X$, the Fenchel dual is given by
+  \begin{align*}
+    D(z) = - f^*(-z) - g^*(A^T z) %
+    = \sum_{i=1}^n \big[ z_i \log ( -z_i ) - (1+z_i)\log( 1+z_i) \big] -
+    \frac{1}{2\lambda} \| A^T z\|_2^2 
+  \end{align*}
+
+
+
+\end{enumerate}
 
 \subsection{Stochastic Dual Coordinate Ascent}
 The dual of the SVM problem,
