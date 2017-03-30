@@ -1,0 +1,155 @@
+\documentclass{article}
+
+\usepackage{etoolbox}
+
+
+\usepackage{fullpage}
+\usepackage{color}
+\usepackage{amsmath}
+\usepackage{url}
+\usepackage{verbatim}
+\usepackage{graphicx}
+\usepackage{parskip}
+\usepackage{amssymb}
+\usepackage{listings} % For displaying code
+
+\begin{document}
+
+\definecolor{blu}{rgb}{0,0,1}
+\def\blu#1{{\color{blu}#1}}
+\definecolor{gre}{rgb}{0,.5,0}
+\def\gre#1{{\color{gre}#1}}
+\definecolor{red}{rgb}{1,0,0}
+\def\red#1{{\color{red}#1}}
+\def\norm#1{\|#1\|}
+\newcommand{\argmin}[1]{\mathop{\hbox{argmin}}_{#1}}
+\newcommand{\argmax}[1]{\mathop{\hbox{argmax}}_{#1}}
+\def\R{\mathbb{R}}
+\newcommand{\fig}[2]{\includegraphics[width=#1\textwidth]{a5f/#2}}
+\newcommand{\centerfig}[2]{\begin{center}\includegraphics[width=#1\textwidth]{a5f/#2}\end{center}}
+\def\items#1{\begin{itemize}#1\end{itemize}}
+\def\enum#1{\begin{enumerate}#1\end{enumerate}}
+\def\argmax{\mathop{\rm arg\,max}}
+\def\argmin{\mathop{\rm arg\,min}}
+\def\half{\frac 1 2}
+\newcommand{\code}[1]{\lstinputlisting[language=Matlab]{a5f/#1}}
+\newcommand{\alignStar}[1]{\begin{align*}#1\end{align*}}
+\newcommand{\mat}[1]{\begin{bmatrix}#1\end{bmatrix}}
+
+
+
+\title{CPSC 540 Assignment 5 (due April 10)}
+\author{UGMs, Bayes, and Literature Survey}
+\date{}
+\maketitle
+
+\section{Undirected Graphical Models}
+
+\subsection{Conditional UGM}
+
+Consdier modeling the dependencies between sets of binary variables $x_j$ and $y_j$ with the following UGM which is a variation on a stacked RBM:
+\centerfig{.6}{weirdRBM}
+Computing univariate marginals in this model will be NP-hard in general, but the graph structure allows efficient block updates by conditioning on suitable subsets of the variables (this could be useful for designing approximate inference methods).
+For each of the conditioning scenarios below, \blu{draw the conditional UGM and comment on how expensive it would be to compute univariate marginals} in the conditional UGM.
+\enum{
+\item Conditioning on all the $z$ and $h$ values.
+\item Conditioning on all the $x$ and $h$ values.
+\item Conditioning on all the $z$ and $y$ values.
+\item Conditioning on all the $x$ and $z$ values.
+}
+
+
+
+\subsection{Fitting a UGM to PINs}
+
+The function \emph{example\_UGM} loads a dataset $X$ containing samples of PIN numbers, based on the probabilities from the article at this URL: \url{http://www.datagenetics.com/blog/september32012}.\footnote{I got the probabilities from the reverse-engineered heatmap here: \url{http://jemore.free.fr/wordpress/?p=73}.}
+
+This function shows how to use the UGM software to fit a UGM model to the dataset, where all node/edge parameters are tied and the graph is empty. It then performs decoding/inference/sampling in the fitted model. Unfortunately, this is not a very good model of the data for several reasons:
+\enum{
+\item The decoding is $1 \; 1 \; 1 \; 1$, whereas in the data the most likely value by far is $1 \; 2 \; 3\; 4$. Similarly, the sampler doesn't tend to generate $1 \; 2 \; 3\; 4$ even though this happens in more than 1/10 samples.
+\item The marginal probability of the first number being $1$ is 22.06\%, which is acutally too low (it should be 38.54\%). In addition, the marginal probabilities of the remaining nubmers being $1$ are also 22.06\%, and these numbers are too high. 
+\item Conditioned on the first three numbers being $1 \; 2 \; 3$, the probability that the last number is 4 is less than 10\% in the model, whereas in the data it's more than 90\%.
+}
+In this question you'll explore better models of this data and different aspects of UGMs.
+\enum{
+\item \blu{What does $w$ have a length of $9$?}
+\item \blu{Write an equation for the model being used by the code.}
+\item \blu{What are potential sources of the problems above?}
+\item Modify the demo to use a \emph{tied} value of 0 and re-run the demo. \blu{Why does the model now have $36$ parameters? Comment on whether this fixes each of the above 3 issues.}
+\item Modify the demo to use chain-structured dependency (keeping the \emph{tied} value at 0). \blu{Comment on whether this fixes each of the above 3 issues.}
+\item Modify the demo to use a completely-connected graph (keeping the \emph{tied} value at 0). \blu{Comment on whether this fixes each of the above 3 issues.}
+\item UGM only support pairwise graphs, \blu{what would the effect of higher-order potentials be? What would the disdavantages of higher-order potentials be?}
+}
+If you want to further explore UGMs, there are quite a few demos on the UGM webpage that you can go through which cover all sorts of things like approximate inference and CRFs.
+
+
+\section{Bayesian Inference}
+
+\subsection{Conjugate Priors}
+
+Consider a $y \in \{1,2,3\}$ following a multinoulli distribution with parameters $\theta = \{\theta_1,\theta_2,\theta_3\}$,
+\[
+y | \theta \sim \text{Mult}(\theta_1,\theta_2,\theta_3).
+\]
+We'll assume that $\theta$ follows a Dirichlet distribution (the conjugate prior to the multinoulli) with parameters $\alpha = \{\alpha_1,\alpha_2,\alpha_3\}$,
+\[
+ \theta \sim \mathcal{D}(\alpha_1,\alpha_2,\alpha_3).
+\]
+Thus we have
+\[
+p(y|\theta,\alpha) = p(y|\theta) = \theta_1^{I(y=1)}\theta_2^{I(y=2)}\theta_3^{I(y=3)}, \quad p(\theta|\alpha) = \frac{\Gamma(\alpha_1+\alpha_2+\alpha_3)}{\Gamma(\alpha_1)\Gamma(\alpha_2)\Gamma(\alpha_3)}\theta_1^{\alpha_1-1}\theta_2^{\alpha_2-1}\theta_3^{\alpha_3-1}.
+\]
+Compute the following quantites:
+\enum{
+\item \blu{The posterior distribution,
+\[
+p(\theta|y,\alpha).
+\]
+\item \blu{The marginal likelihood of $y$ given the hyper-parameters $\alpha$,
+\[
+p(y|\alpha) = \int p(y,\theta|\alpha)d\theta,
+\]}
+\item \blu{The posterior mean estimate for $\theta$,
+\[
+\mathbb{E}_{\theta|y,\alpha}[\theta_i] = \int \theta_i p(\theta|y,\alpha)d\theta,
+\]}
+which (after some manipulation) should not involve any $\Gamma$ functions.
+}
+\item \blu{The posterior predictive distribution for a new independent observation $\hat{y}$ given $y$,
+\[
+p(\hat{y}|y,\alpha) =  \int p(\hat{y},\theta|y,\alpha)d\theta.
+\]
+}
+}
+ Hint: You can use $D(\alpha) =  \frac{\Gamma(\alpha_1)\Gamma(\alpha_2)\Gamma(\alpha_3)}{\Gamma(\alpha_1+\alpha_2+\alpha_3)}$ to represent the normalizing constant of the prior and $D(\alpha^+)$ to give the normalizing constant of the posterior. You will also need to use that $\Gamma(\alpha+1) = \alpha\Gamma(\alpha)$. For some calculations you may find it a bit cleaner to parameterize the posterior in terms of $\beta_j = I(y=j) + \alpha_j$, and convert back once you have the final result.
+
+
+
+\subsection{Empirical Bayes}
+
+ Consider the model
+\[
+y_i \sim \mathcal{N}(w^T\phi(x_i),\sigma^2), \quad w_j \sim \mathcal{N}(0,\lambda).
+\]
+By using properties of Gaussians the marginal likelihood has the form
+\[
+p(y_i|x_i,\sigma,\lambda) = (2\pi)^{-d/2}|C|^{-1/2}\exp\left(-\frac{y^TC^{-1}y}{2}\right),
+\]
+which gives a negative log-marginal likelihood of
+\[
+- \log p(y_i|x_i,\sigma,\lambda) \propto \log|C| + y^TC^{-1}y + \text{const.}
+\]
+where
+\[
+C = \frac{1}{\sigma^2}I + \frac{1}{\lambda}\Phi(X)\Phi(X)^T,
+\]
+As discussed in class, the marginal likelihood can be used to optimize hyper-parameters like $\sigma$, $\lambda$, and even the basis $\phi$.
+
+The demo \emph{example\_basis} loads a dataset and fits a degree-2 polynomial to it. Normally we would use a test set to choose the degree of the polynomial but here we'll use the marginal likelihood of the training set. Write a function, \emph{leastSquaresEmpiricalBaysis}, that uses the marginal likelihood to choose the degree of the polynomial as well as the parameters $\lambda$ and $\sigma$ (you can assume that all $\lambda_j$ are equal, and you can restrict your search for $\lambda$ and $\sigma$ to powers of 10). \blu{Hand in your code and report the marginally most likely values of the degree, $\sigma$, and $\lambda$.} You can use the \emph{logdet} function to compute the log-determinant.
+
+{Hint: computing $C^{-1}y$ by explicitly forming $C^{-1}$ may give you numerical issues that lead to non-sensical solution. You can avoid these by using $y^TC^{-1}y = y^Tv$ where $v$ is a solution to $Cv = y$ (Matlab will still give a warning due to ill-conditioning, but it won't return non-sensical results).}
+
+
+
+
+\end{document}

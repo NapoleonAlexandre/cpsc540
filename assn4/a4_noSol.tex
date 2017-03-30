@@ -1,0 +1,195 @@
+\documentclass{article}
+
+
+\usepackage{fullpage}
+\usepackage{color}
+\usepackage{amsmath}
+\usepackage{url}
+\usepackage{verbatim}
+\usepackage{graphicx}
+\usepackage{parskip}
+\usepackage{amssymb}
+\usepackage{listings} % For displaying code
+
+\begin{document}
+
+\definecolor{blu}{rgb}{0,0,1}
+\def\blu#1{{\color{blu}#1}}
+\definecolor{gre}{rgb}{0,.5,0}
+\def\gre#1{{\color{gre}#1}}
+\definecolor{red}{rgb}{1,0,0}
+\def\red#1{{\color{red}#1}}
+\def\norm#1{\|#1\|}
+\newcommand{\argmin}[1]{\mathop{\hbox{argmin}}_{#1}}
+\newcommand{\argmax}[1]{\mathop{\hbox{argmax}}_{#1}}
+\def\R{\mathbb{R}}
+\newcommand{\fig}[2]{\includegraphics[width=#1\textwidth]{a4f/#2}}
+\newcommand{\centerfig}[2]{\begin{center}\includegraphics[width=#1\textwidth]{a4f/#2}\end{center}}
+\def\items#1{\begin{itemize}#1\end{itemize}}
+\def\enum#1{\begin{enumerate}#1\end{enumerate}}
+\def\argmax{\mathop{\rm arg\,max}}
+\def\argmin{\mathop{\rm arg\,min}}
+\def\half{\frac 1 2}
+\newcommand{\code}[1]{\lstinputlisting[language=Matlab]{a4f/#1}}
+\newcommand{\alignStar}[1]{\begin{align*}#1\end{align*}}
+\newcommand{\mat}[1]{\begin{bmatrix}#1\end{bmatrix}}
+
+
+
+\title{CPSC 540 Assignment 4 (due March 20)}
+\author{Graphical Models and Paper Review}
+\date{}
+\maketitle
+
+
+\section{Markov Chains}
+
+\subsection{Sampling, Inference, and Decoding}
+
+The function \emph{example\_markovChain.m} loads the initial state probabilities and transition probabilities for three Markov chain models on $d$ binary variables,
+\[
+p(x_1,x_2,\dots,x_d) = p(x_1)\prod_{j=2}^{d}{p(x_j|x_{j-1})}.
+\]
+It then tries to find the optimal decoding (the most likely assignment to the variables $\{x_1,x_2,\dots,x_d\}$) in each of the three chains. In the demo, decoding is done by enumerating all possible assignments to the variables. This works for the first two chains as they only have 4 variables, but is too slow on the last chain because it has 30 variables. In this question you'll explore two ways to estimate the marginals in third Markov chain and two ways to estimate the most-probable sequence.
+
+\enum{
+\item Write a function, \emph{sampleAncestral.m}, that uses ancestral sampling to sample sequence $x$. \blu{Hand in this code and report all the univariate marginal probabilities using a Monte Carlo estimate based on 10000 samples.}
+\item Write a function, \emph{marginalCK.m}, that uses the CK equations to compute the exact univariate marginals. \blu{Hand in this code and report all exact univariate marginals.}
+\item Write a function, \emph{marginalDecode.m}, that returns the sequence of states $x_j$ that maximize the marginal probability $p(x_j)$ (for each $j$). \blu{Hand in this code and report the sequence of most likely states}.
+\item Write a function, \emph{viterbiDecode.m}, that implements the Viterbi decoding algorithm for Markov chains. \blu{Hand in this code and report the optimal decoding of the third Markov chain}.
+}
+Hint: for parts 2-4, you can use a $2$ by $d$ matrix $M$ to represent the dynamic programming table, and for part 4 you can use another matrix $B$ containing the argmax values that lead to each entry in the table. 
+
+
+\subsection{Conditioning}
+
+The long sequence from the previous question usually starts with state 1 and most of the time ends in state 2. In this question you'll consider conditioning on these events not happening. First, compute the following quantities which can be done using your functions from the previous question:
+\enum{
+\item \blu{Report all the univariate conditional probabilities $p(x_j | x_1 = 2)$ obtained using a Monte Carlo estimate based on 10000 samples}.
+\item \blu{Report all the exact univariate conditionals $p(x_j | x_1 = 2)$.}
+\item \blu{Report the sequence beginning with $x_1=2$ that has the highest probability.}
+\item \blu{Report the sequence ending with $x_d=1$ that has the highest probability.}
+}
+Hint: these conditions can be done by changing the input to the functions from the previous question.
+
+Next consider the following cases (which require implementing an extra rejection step or backward phase):
+\enum{
+\setcounter{enumi}{4}
+\item \blu{Report all the univariate conditional probabilities $p(x_j | x_d = 1)$ obtained using a Monte Carlo estimate based on 10000 samples and rejection sampling. Also report the number of samples accepted among the 10000 samples.}
+\item Write a function, \emph{sampleBackwards.m} that uses backwards sampling to sample sequences where $x_d = 1)$. \blu{Hand in this code and report all the univariate conditional probabilities $p(x_j | x_d = 1)$ obtained using a Monte Carlo estimate based on 10000 samples}.
+\item Write a function, \emph{forwardBackwards.m} that is able compute all exact univariate conditionals $p(x_j | x_d = 1)$ in $O(dk^2)$. \blu{Hand in the code and report all the exact univariate conditionals $p(x_j | x_d = 1)$.}
+}
+
+
+
+\subsection{1D Linear-Gaussian Markov Chains}
+
+Consider a continuous-state Markov chain where the initial distribution is given by
+\[
+x_0 \sim \mathcal{N}(m_0, v_0^2),
+\]
+and the transition distributions for $j > 1$ are given by
+\[
+x_j | x_{j-1} \sim \mathcal{N}(w_jx_{j-1} + m_j, v_j^2).
+\]
+This model could be used to model an object moving through $\R$.\footnote{In practical applications like object tracking, we typically have that the states $x_j$ are 2- or 3-dimensions so we model an object like a submarine or an airplane moving through space.} Because of the Gaussian assumptions, this defines a joint Gaussian distribution over the variables while the marginal distributions are also Gaussian. \blu{For a generic $j > 1$, derive the form of the marginal distribution of $x_j$, expressing the marginal parameters $\mu_j$ and $\sigma_j$ recursively in terms of $\mu_{j-1}$ and $\sigma_{j-1}$.}
+
+Hint: You can use Theorem 4.4.1 of Murphy's book.
+
+\section{Directed Acyclic Graphical Models}
+
+\subsection{D-Separation}
+
+Consider a  directed acyclic graphical (DAG) model with the following graph structure:
+\centerfig{.4}{DAG}
+
+Assuming that the conditional independence properties are faithful to the graph, using d-separation \blu{briefly explain why the following are true or false:}
+\begin{enumerate}
+\item $B \perp F$.
+\item $B \perp F \; | \; A$ .
+\item $B \perp F \; | \; C$.
+\item $B \perp F \; | \; E$.
+\item $B \perp F \; | \; I$.
+\item $B \perp F \; | \; J$.
+\item $B \perp F \; | \; C,E$.
+\end{enumerate}
+
+
+
+\subsection{Exact Inference}
+
+
+While DAGs can be used as a visual representation of independence assumptions, they can also be used to simplify computations.This question will give you practice using the basic properties which allow efficient computations in graphical models.
+Consider the DAG model below, for distinguishing between different causes of shortness-of-breath (dyspnoea) and the causes of an abnormal lung x-ray, while  modelling potential causes of these diseases too (whether the person is a smoker or had a `visit' to a country with a high degree of tuberculosis).
+
+\centerfig{.7}{bayesNet}
+
+
+For this question, let's assume that we use the following parameterization of the network:
+\begin{align*}
+\text{Visit}\\
+p(V = 1) & = 0.01\\
+\text{Smoking}\\
+p(S = 1) & = 0.2\\
+\text{Tuberculosis}\\
+p(T = 1 | V = 1) & = 0.05\\
+p(T = 1 | V = 0) & = 0.01\\
+\text{Lung Cancer}\\
+p(L = 1 | S = 1) & = 0.10\\
+p(L = 1 | S = 0) & = 0.01\\
+\text{Bronchitis}\\
+p(B = 1 | S = 1) & = 0.60\\
+p(B = 1 | S = 0) & = 0.30\\
+\text{Abnormal X-Ray}\\
+p(X = 1 | T = 1, L = 1) & = 1.00\\
+p(X = 1 | T = 1, L = 0) & = 0.98\\
+p(X = 1 | T = 0, L = 1) & = 0.9\\
+p(X = 1 | T = 0, L = 0) & = 0.05\\
+\end{align*}
+\begin{align*}
+\text{Dyspnoea}\\
+p(D = 1 | T = 1, L = 1, B = 1) & = 0.90\\
+p(D = 1 | T = 1, L = 1, B = 0) & = 0.70\\
+p(D = 1 | T = 1, L = 0, B = 1) & = 0.85\\
+p(D = 1 | T = 1, L = 0, B = 0) & = 0.65\\
+p(D = 1 | T = 0, L = 1, B = 1) & = 0.82\\
+p(D = 1 | T = 0, L = 1, B = 0) & = 0.60\\
+p(D = 1 | T = 0, L = 0, B = 1) & = 0.80\\
+p(D = 1 | T = 0, L = 0, B = 0) & = 0.10\\
+\end{align*}
+
+\blu{Compute the following quantities} (hints are given on the right, and these will be easier to do in order and if you use conditional independence properties to simplify the calculations):
+\begin{align*}
+0.\; & p(S = 1) & \text{(marginal of root node; can read from table)}\\
+1.\; & p(S = 0) & \text{(negation of marginal of root node; use sum to one constraint)}\\
+2.\; & p(L = 1 | S = 1) & \text{(conditional of child node given parents; can be read from table)}\\
+3.\; & p(L = 1) & \text{(marginal of child node; marginalize over parent)}\\
+4.\; & p(X=1|T=1,L=1) & \text{(conditional of child given parents; can be read from table)}\\
+5.\; & p(X = 1 | T = 1) & \text{(conditional of child with missing parent; marginalize over missing parent)}\\
+6.\; & p(X=1|T=1,S=1) & \text{(conditional of child given parent and grand-parent, marginalize over missing parent)}\\
+7.\; & p(X = 1) & \text{(marginal of leaf node; marginalize over parents and use independence to simplify)}\\
+8.\; & p(T = 1 | X = 1) & \text{(conditional of parent given child; use Bayes rule)}\\
+9.\; & p(T = 1 | L = 1) & \text{(conditional of parent given co-parent; use independence and then marginal)}\\
+10.\; & p(T = 1 | X = 1, L = 1) & \text{(conditional of parent given child and co-parent; use Bayes rule)}\\
+\end{align*}
+
+
+
+\subsection{Inpainting}
+
+The function \emph{example\_fil.m} loads a variant of the MNIST dataset. It contains all the training images but the test images are missing their bottom half. Running this function fits an independent Bernoulli model to the training set, and then shows the result of applying the density model to ``fill in'' four random test examples. It performs pretty badly because the independent model can't condition on the known top-half of the images.
+\enum{
+\item Make a variant of the demo where you fit an inhomogeneous Markov chain to each image column. \blu{Hand in your code and an example of using this model to fill in 4 random test images.}
+\item Make a variant of the demo where you fit a directed acyclic graphical model to the data, using general discrete conditional probabilities and where the parents of pixel $(i,j)$ are the other 8 pixels in the region $(i-2:i,j-2:j)$.
+\blu{Hand in your code and an example of using this model to fill in 4 random test images.}
+\item Consider using more than 8 pixels are parents in the above model, such as the 15 pixels in the region $(i-3:i,j-3:j)$. If you do this, the code will often place white pixels in the bottom right corner of the image even though no training example has a white pixel there. Why would it do this?
+\item Make a variant of the demo where you fit a sigmoid belief network to the data, where the parents of pixel $(i,j)$ are the other pixels in the region $(1:i,1:j)$.
+\blu{Hand in your code and an example of using this model to fill in 4 random test images.}
+}
+Hints: For parts 2 and 3, you may find it helpful to make an $m$ by $m$ cell array called \emph{models} where element $(i,j)$ contains the model for pixel $(i,j)$. For parts 2 and 3 the size of the dataset also mean you will probably need to vectorize your computation. The functions \emph{permute} and \emph{reshape} will help you, making a sparse version of X with \emph{sparse} can also speed up many operations. For part 2, you can use \emph{binaryTabular.m} to fit the discrete conditional distribution and sample from it (a reasonable value of $\alpha$ is 1). For part 3, you can use \emph{logisticL2.m} to fit logistic regression models and sample from them (a reasonable value of $\lambda$ is 1). Note that \emph{logisticL2.m} uses a $\{-1,1\}$ encoding of $y$ while \emph{binaryTabular.m} uses a $\{0,1\}$ encoding (both support sparse $X$).
+
+
+
+
+
+\end{document}
